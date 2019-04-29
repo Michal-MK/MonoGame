@@ -21,7 +21,7 @@ namespace MonoGame {
 
 		private ThatCoolCircleThing circlesYay { get; set; }
 
-		const int DIVISOR = 9;
+		const int DIVISOR = 6;
 
 		private OpenSimplex.OpenSimplexNoise Noise { get; set; }
 
@@ -36,12 +36,17 @@ namespace MonoGame {
 
 		protected override void Initialize() {
 			IsMouseVisible = true;
-			ViewPortWidth = GDManager.PreferredBackBufferWidth = GDManager.GraphicsDevice.DisplayMode.Width;
-			ViewPortHeight = GDManager.PreferredBackBufferHeight = GDManager.GraphicsDevice.DisplayMode.Height;
-
 			GDManager.SynchronizeWithVerticalRetrace = true;
 			IsFixedTimeStep = true;
-			//GDManager.IsFullScreen = true;
+
+			//GDManager.IsFullScreen = false;
+			//ViewPortWidth = GDManager.PreferredBackBufferWidth = GDManager.GraphicsDevice.DisplayMode.Width / 2;
+			//ViewPortHeight = GDManager.PreferredBackBufferHeight = GDManager.GraphicsDevice.DisplayMode.Height / 2;
+
+			ViewPortWidth = GDManager.PreferredBackBufferWidth = GDManager.GraphicsDevice.DisplayMode.Width;
+			ViewPortHeight = GDManager.PreferredBackBufferHeight = GDManager.GraphicsDevice.DisplayMode.Height;
+			GDManager.IsFullScreen = true;
+
 			GDManager.ApplyChanges();
 
 			simplexNoiseColors = new Color[ViewPortWidth / DIVISOR * ViewPortHeight / DIVISOR];
@@ -68,8 +73,8 @@ namespace MonoGame {
 		double zOff = 0;
 		double xOff = 0;
 
-		double xIncrement = 0.1;
-		double yIncrement = 0.1;
+		double xIncrement = 0.01;
+		double yIncrement = 0.01;
 		double zOffsetInc = 0.01;
 
 		protected override void Update(GameTime gameTime) {
@@ -85,29 +90,30 @@ namespace MonoGame {
 			//	for (int j = 0; j < (ViewPortHeight / DIVISOR); j++) {
 			//		yOff += yIncrement;
 			//		double value = Noise.Evaluate(xOff, yOff, zOff);
-			//		int val = ValueMapper.Map(value, 0, 1, 0, 255);
+
+			//		int val = ValueMapper.Map(value, -0.7, 1, 0, 360);
 			//		int index = j * (ViewPortWidth / DIVISOR) + i;
-			//		simplexNoiseColors[index] = new Color(val, val, val);
+			//		simplexNoiseColors[index] = HSV.ColorFromHue(val);
 			//	}
 			//}
 
-			//if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
-			//	if (_prevMousePos == null) {
-			//		return;
-			//	}
+			if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
+				if (_prevMousePos == null) {
+					return;
+				}
 
-			//	_components.Add(new LineSegment() {
-			//		StartPos = _currMousePos,
-			//		EndPos = _prevMousePos,
-			//		Color = HSV.ColorFromHue(RNG.Next(0, 360))
-			//	});
+				//_components.Add(new LineSegment() {
+				//	StartPos = _currMousePos,
+				//	EndPos = _prevMousePos,
+				//	Color = HSV.ColorFromHue(RNG.Next(0, 360))
+				//});
 
-			//	_components.Add(new Circle() {
-			//		Radius = 20,
-			//		Position = _currMousePos,
-			//		Color = HSV.ColorFromHue(RNG.Next(0, 360))
-			//	});
-			//}
+				//_components.Add(new Circle() {
+				//	Radius = 20,
+				//	Position = _currMousePos,
+				//	Color = HSV.ColorFromHue(RNG.Next(0, 360))
+				//});
+			}
 
 			KeyboardState state = Keyboard.GetState();
 
@@ -137,6 +143,22 @@ namespace MonoGame {
 
 			if (Mouse.GetState().RightButton == ButtonState.Pressed) {
 				_components.Clear();
+				circlesYay.Clear();
+			}
+
+			if((state.IsKeyDown(Keys.LeftAlt) || state.IsKeyDown(Keys.RightAlt)) && state.IsKeyDown(Keys.Enter)) {
+				if (GDManager.IsFullScreen) {
+					GDManager.IsFullScreen = false;
+					ViewPortWidth = GDManager.PreferredBackBufferWidth = GDManager.GraphicsDevice.DisplayMode.Width / 2;
+					ViewPortHeight = GDManager.PreferredBackBufferHeight = GDManager.GraphicsDevice.DisplayMode.Height / 2;
+					GDManager.ApplyChanges();
+				}
+				else {
+					ViewPortWidth = GDManager.PreferredBackBufferWidth = GDManager.GraphicsDevice.DisplayMode.Width;
+					ViewPortHeight = GDManager.PreferredBackBufferHeight = GDManager.GraphicsDevice.DisplayMode.Height;
+					GDManager.IsFullScreen = true;
+					GDManager.ApplyChanges();
+				}
 			}
 
 			circlesYay.Update(gameTime);
@@ -150,10 +172,10 @@ namespace MonoGame {
 			Renderer.Begin(blendState: BlendState.AlphaBlend);
 
 			#region Cool stuff inside
-			Rectangle visible = new Rectangle((int)_currMousePos.X - 25, (int)_currMousePos.Y - 25, 50, 50);
+			//Rectangle visible = new Rectangle((int)_currMousePos.X - 25, (int)_currMousePos.Y - 25, 50, 50);
 
-			int noiseResX = ViewPortWidth / DIVISOR;
-			int noiseResY = ViewPortHeight / DIVISOR;
+			//int noiseResX = ViewPortWidth / DIVISOR;
+			//int noiseResY = ViewPortHeight / DIVISOR;
 
 			//Texture2D texture = new Texture2D(GraphicsDevice, noiseResX, noiseResY);
 
@@ -165,15 +187,13 @@ namespace MonoGame {
 			//Renderer.Draw(_texture, visible, visible, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
 
 
-			Renderer.DrawString(_arial, $"zOff = {zOff.ToString("0:000")}; zInc = {zOffsetInc}", Vector2.Zero, Color.Red);
-			Renderer.DrawString(_arial, $"xInc = {xIncrement}", new Vector2(0, +20), Color.Red);
-			Renderer.DrawString(_arial, $"yInc = {yIncrement}", new Vector2(0, +40), Color.Red);
+			//Renderer.DrawString(_arial, $"zOff = {zOff.ToString("0:000")}; zInc = {zOffsetInc}", Vector2.Zero, Color.Red);
+			//Renderer.DrawString(_arial, $"xInc = {xIncrement}", new Vector2(0, +20), Color.Red);
+			//Renderer.DrawString(_arial, $"yInc = {yIncrement}", new Vector2(0, +40), Color.Red);
 
-
-
-			foreach (Component comp in _components) {
-				comp.Draw(gameTime, Renderer);
-			}
+			//foreach (Component comp in _components) {
+			//	comp.Draw(gameTime, Renderer);
+			//}
 
 			#endregion
 
